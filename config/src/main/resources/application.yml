@@ -9,3 +9,6 @@ spring:
             search-locations: classpath:/shared
   profiles:
     active: composite
+  security:
+    user:
+      password: mf12345678

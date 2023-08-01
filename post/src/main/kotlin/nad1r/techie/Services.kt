@@ -8,10 +8,13 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import javax.persistence.EntityManager
 
-@FeignClient(name = "user")
+@FeignClient(name = "user", configuration = [Auth2TokenConfiguration::class])
 interface UserService {
     @GetMapping("internal/exists/{id}")
     fun existById(@PathVariable id: Long): Boolean
+
+    @GetMapping
+    fun getUserById(): UserDto
 }
 
 @FeignClient(name = "subscription")
@@ -23,7 +26,7 @@ interface SubscriptionService {
 
 interface ThreadService {
     fun createThread(dto: ThreadDto)
-    fun getThreads(userId: Long, pageable: Pageable): Page<ThreadDto>
+    fun getThreads( pageable: Pageable): Page<ThreadDto>
     fun existsById(id: Long): Boolean
 }
 
@@ -49,23 +52,25 @@ class ThreadServiceImpl(
     private val userThreadReadRepository: UserThreadReadRepository
 ) : ThreadService {
     override fun createThread(dto: ThreadDto) {
-        userService.existById(dto.authorId).runIfFalse { throw UserNotFoundException(dto.authorId) }
         repository.save(dto.toEntity())
     }
 
     override fun existsById(id: Long) = repository.existsByIdAndDeletedFalse(id)
 
-    override fun getThreads(userId: Long, pageable: Pageable): Page<ThreadDto> {
-        userService.existById(userId).runIfFalse { throw UserNotFoundException(userId) }
-        val connections = subscriptionService.getUserConnections(userId)
-         return repository.findAllUnreadTweet(connections, userId, pageable).map { thread ->
-             userThreadReadRepository.save(UserThreadRead(userId, thread))
-             ThreadDto(
-                 thread.id,
-                 thread.text,
-                 thread.authorId
-             )
-         }
+    override fun getThreads( pageable: Pageable): Page<ThreadDto> {
+        val connections = subscriptionService.getUserConnections(userId())
+
+        lateinit var userThreads: MutableList<UserThreadRead>
+        val threadDtoPage = repository.findAllUnreadTweet(connections, userId(), pageable).map { thread ->
+            userThreads.add(UserThreadRead(userId(), thread))
+            ThreadDto(
+                thread.id,
+                thread.text,
+                thread.authorId
+            )
+        }
+        userThreadReadRepository.saveAll(userThreads)
+        return threadDtoPage
     }
 }
 
@@ -74,12 +79,10 @@ class ThreadServiceImpl(
 class LikeServiceImpl(
     private val repository: LikeRepository,
     private val replyRepository: ReplyRepository,
-    private val userService: UserService,
-    private val threadRepository: ThreadRepository,
+    private val threadRepository: ThreadRepository
 ) : LikeService {
     override fun like(dto: LikeDto) {
         dto.run {
-            userService.existById(authorId).runIfFalse { throw UserNotFoundException(authorId) }
            when(likeType) {
                 LikeType.TO_REPLY -> replyRepository.existsByIdAndDeletedFalse(toLikeId)
                     .runIfFalse { throw ReplyNotFoundException(toLikeId) }
@@ -89,7 +92,7 @@ class LikeServiceImpl(
                     .runIfFalse { throw ThreadNotFoundException(toLikeId) }
 
             }
-            val like = repository.findByAuthorIdAndAndToLikeIdAndLikeType(authorId, toLikeId,  likeType)
+            val like = repository.findByAuthorIdAndAndToLikeIdAndLikeType(userId(), toLikeId,  likeType)
             like?.let {
                 it.deleted = false
                 repository.save(it)
@@ -110,13 +113,11 @@ class LikeServiceImpl(
 @Service
 class ReplyServiceImpl(
     private val repository: ReplyRepository,
-    private val userService: UserService,
     private val threadRepository: ThreadRepository,
     private val entityManager: EntityManager
 ) : ReplyService {
     override fun createReply(dto: ReplyDto) {
         dto.run {
-            userService.existById(authorId).runIfFalse { throw UserNotFoundException(authorId) }
             threadRepository.existsByIdAndDeletedFalse(threadId).runIfFalse { throw ThreadNotFoundException(threadId) }
             val thread = entityManager.getReference(Thread::class.java, threadId)
             repository.save(dto.toEntity(thread))

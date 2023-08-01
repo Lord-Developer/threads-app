@@ -16,7 +16,7 @@ class ExceptionHandlers(
     fun handleException(exception: UserServiceException): ResponseEntity<*> {
         return when (exception) {
             is UserNotFoundException -> ResponseEntity.badRequest().body(
-                exception.getErrorMessage(errorMessageSource, exception.userId)
+                exception.getErrorMessage(errorMessageSource)
             )
             is EmailAlreadyExistsException -> ResponseEntity.badRequest().body(
                 exception.getErrorMessage(errorMessageSource, listOf(exception.email))
@@ -40,11 +40,17 @@ class ExceptionHandlers(
 @Validated
 class UserController(private val service: UserService) {
 
-    @PostMapping
-    fun create(@RequestBody @Valid dto: UserCreateDto) = service.create(dto)
+    @PostMapping("/register")
+    fun create(@RequestBody @Valid dto: UserDto) = service.create(dto)
 
-    @GetMapping("{id}")
-    fun getById(@PathVariable id: Long) = service.getById(id)
+    @GetMapping
+    fun getById() = service.getById()
+
+    @GetMapping("/is-active")
+    fun isActive(@RequestParam("username") username: String) = service.isUserActive(username)
+
+    @GetMapping("find")
+    fun findUser(username: String) = service.findByUsername(username)
 }
 
 @RestController

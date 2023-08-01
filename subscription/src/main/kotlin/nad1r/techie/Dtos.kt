@@ -1,8 +1,6 @@
 package nad1r.techie
 
-data class BaseMessage(val code: Int? = null, val message: String?)
+import com.fasterxml.jackson.annotation.JsonInclude
 
-data class FollowerDto(
-    val followerId: Long,
-    val followingId: Long
-)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class BaseMessage(val code: Int? = null, val message: String? = null)

@@ -15,10 +15,9 @@ data class ThreadDto(
     @field:Size(min = 3, max = 100, message = "Content must be between 3 and 100 characters")
     val text: String,
 
-    @field:NotNull(message = "Author ID cannot be null")
     val authorId: Long
 ) {
-    fun toEntity() = Thread(text, authorId)
+    fun toEntity() = Thread(text, userId())
 }
 
 
@@ -27,12 +26,11 @@ data class LikeDto(
     @field:NotNull(message = "ToLike ID cannot be null")
     val toLikeId: Long,
 
-    @field:NotNull(message = "Author ID cannot be null")
-    val authorId: Long,
+    val authorId: Long?,
 
     val likeType: LikeType
 ){
-    fun toEntity() = Like(authorId,  toLikeId, likeType)
+    fun toEntity() = Like(userId(),  toLikeId, likeType)
 }
 
 data class ReplyDto(
@@ -43,11 +41,16 @@ data class ReplyDto(
     @field:NotBlank(message = "Text is required")
     val text: String,
 
-    @field:NotNull(message = "Author ID cannot be null")
-    val authorId: Long,
+    val authorId: Long?,
 
     @field:NotNull(message = "Thread ID cannot be null")
     val threadId: Long
 ){
-    fun toEntity(thread: Thread) = Reply(text, authorId, thread)
+    fun toEntity(thread: Thread) = Reply(text, userId(), thread)
 }
+
+data class UserDto(
+    val id: Long?,
+    val name: String,
+    val username: String
+)

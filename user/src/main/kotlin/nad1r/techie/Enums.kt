@@ -1,5 +1,7 @@
 package nad1r.techie
 
+enum class UserRole { DEVELOPER, ADMIN, USER, MODERATOR }
+
 enum class ErrorCode(val code: Int) {
     USER_NOT_FOUND(100),
     USER_NAME_ALREADY_EXISTS(101),

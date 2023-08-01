@@ -3,7 +3,7 @@ server:
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/thread_cloud
+    url: jdbc:postgresql://localhost:5432/thread_app
     username: postgres
     password: 7272
   jpa:
@@ -16,4 +16,4 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: create

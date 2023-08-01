@@ -47,7 +47,7 @@ class BaseRepositoryImpl<T : BaseEntity>(
 interface ThreadRepository : BaseRepository<Thread>{
     fun existsByIdAndDeletedFalse(id: Long): Boolean
 
-    @Query(value = "SELECT * FROM thread_cloud.thread_post.th_thread t\n" +
+    @Query(value = "SELECT * FROM thread_post.th_thread t\n" +
             "WHERE t.author_id IN :authorIds  AND t.deleted= false\n" +
             "  AND  t.id NOT IN (SELECT utr.thread_id FROM thread_post.th_user_thread_read utr " +
             "WHERE utr.user_id = :userId)",
@@ -58,11 +58,10 @@ interface ReplyRepository : BaseRepository<Reply>{
     fun existsByIdAndDeletedFalse(id: Long): Boolean
     fun findAllByThreadIdAndDeletedFalse(threadId: Long,  pageable: Pageable): Page<Reply>
 }
+
 interface LikeRepository : BaseRepository<Like>{
     fun findByAuthorIdAndAndToLikeIdAndLikeType(authorId: Long, toLikeId: Long,  likeType: LikeType): Like?
     fun countByToLikeIdAndLikeTypeAndDeletedFalse(toLikeId: Long, likeType: LikeType): Int
 }
 
-interface UserThreadReadRepository : BaseRepository<UserThreadRead>{
-
-}
+interface UserThreadReadRepository : BaseRepository<UserThreadRead>

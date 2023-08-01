@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.context.support.ResourceBundleMessageSource
+import org.springframework.data.domain.AuditorAware
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -12,6 +14,17 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+
+
+@Configuration
+class EntityAuditingConfig {
+    @Bean
+    fun userIdAuditorAware() = AuditorAware {
+        Optional.ofNullable(
+            SecurityContextHolder.getContext().getUsername()
+        )
+    }
+}
 
 @Configuration
 class WebMvcConfigure : WebMvcConfigurer {

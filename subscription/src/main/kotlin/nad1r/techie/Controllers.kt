@@ -35,11 +35,11 @@ class SubscriptionController(
     private val followerService: FollowerService
 ){
 
-    @PostMapping
-    fun subscribe(@RequestBody dto: FollowerDto) = followerService.follow(dto)
+    @PostMapping("/{id}")
+    fun subscribe(@PathVariable id: Long) = followerService.follow(id)
 
-    @PutMapping
-    fun unsubscribe(@RequestBody dto: FollowerDto) = followerService.unfollow(dto)
+    @PutMapping("/{id}")
+    fun unsubscribe(@PathVariable id: Long) = followerService.unfollow(id)
 }
 
 

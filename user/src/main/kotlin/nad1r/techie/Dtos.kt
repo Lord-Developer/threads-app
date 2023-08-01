@@ -1,43 +1,65 @@
 package nad1r.techie
 
-import javax.validation.constraints.Email
-import javax.validation.constraints.NotBlank
+import com.fasterxml.jackson.annotation.JsonInclude
+import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size
 
-data class BaseMessage(val code: Int, val message: String?)
 
-data class UserCreateDto(
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class BaseMessage(var code: Int? = null, var message: String? = null)
 
-    @field:NotBlank(message = "Name cannot be blank")
-    val name: String,
-
-    @field:NotBlank(message = "Username cannot be blank")
-    @field:Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
-    val username: String,
-
-    @field:NotBlank(message = "Email cannot be blank")
-    @field:Size(max = 100, message = "Email must not exceed 100 characters")
-    @field:Email(message = "Invalid email format")
-    val email: String,
-
-    @field:ValidPassword(" Ensure password is at least 8 characters long and contains at least one uppercase letter and one digit")
-    val password: String
-) {
-    fun toEntity() = User(name, email, username, password)
-}
 
 data class UserDto(
-    val id: Long,
-    val name: String,
-    val username: String,
-    val bio: String?
-){
+    val id: Long?,
+
+    @field:Size(min = 3, max = 25, message = "Username must be between 3 and 25 characters")
+    var username: String,
+
+    @field:Size(min = 3, max = 25, message = "Username must be between 3 and 25 characters")
+    var name: String,
+
+    @field:NotNull(message = "Role is required")
+    var roleId: Long,
+
+    @field:ValidPassword(" Ensure password is at least 8 characters long and contains at least one uppercase letter and one digit")
+    var password: String,
+    var permissions: List<Long>,
+    var organizationId: Long?,
+    var pinfl: String?
+) {
+    fun toEntity(role: Role, permissions: MutableSet<Permission>?) = User(username, password, role, name, permissions)
+}
+
+
+data class UserGetDto(
+    val id: Long?,
+    val fullName: String,
+    val phoneNumber: String
+) {
     companion object {
-        fun from(user: User) = UserDto(
-            user.id!!,
-            user.name!!,
-            user.username!!,
-            user.bio
-        )
+        fun toDto(user: User) = user.run { UserGetDto(id, name, username) }
+    }
+}
+
+data class UserAuthDto(
+    var id: Long,
+    var username: String,
+    var name: String? = null,
+    var password: String,
+    var role: String,
+    var active: Boolean,
+    var permissions: List<String>?
+) {
+    companion object {
+        fun toDto(user: User) = user.run {
+            UserAuthDto(
+                id!!,
+                username,
+                name,
+                password,
+                role.name.name,
+                active,
+                permissions?.map { it.name })
+        }
     }
 }

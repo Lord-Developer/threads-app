@@ -19,7 +19,7 @@ sealed class UserServiceException(message: String? = null) : RuntimeException(me
     }
 }
 
-class UserNotFoundException(val userId: Long) : UserServiceException() {
+class UserNotFoundException() : UserServiceException() {
     override fun errorType() = ErrorCode.USER_NOT_FOUND
 }
 

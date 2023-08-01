@@ -59,8 +59,8 @@ class ThreadController(
     fun existsById(@PathVariable id: Long) = threadService.existsById(id)
 
     @GetMapping("{id}")
-    fun getThreadstoUser(@PathVariable id: Long, @PageableDefault(size = 2) pageable: Pageable)
-        = threadService.getThreads(id, pageable)
+    fun getThreadstoUser(@PageableDefault(size = 2) pageable: Pageable)
+        = threadService.getThreads( pageable)
 
 }
 
